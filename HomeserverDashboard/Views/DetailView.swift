@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// Phone-side counterpart to CarPlaySceneDelegate's CPInformationTemplate
-/// detail push — same data, presented as a sheet instead of a CarPlay
-/// template.
+/// Detail sheet for a tapped alert or service status row.
 struct DetailView: View {
     enum Kind: Identifiable {
         case alert(Alert)
@@ -27,24 +25,25 @@ struct DetailView: View {
                     Section {
                         DetailRow("Topic", alert.topic)
                         DetailRow("Level", alert.level.rawValue.capitalized)
-                        DetailRow("Received", FormatterHelper.relativeTime(alert.time))
+                        DetailRow("Empfangen", FormatterHelper.relativeTime(alert.time))
                     }
-                    Section("Message") {
+                    Section("Nachricht") {
                         Text(alert.message)
+                            .foregroundStyle(Theme.textPrimary)
                     }
                 case .service(let status):
                     Section {
                         DetailRow("Status", status.status.rawValue.capitalized)
                         DetailRow("Ping", FormatterHelper.ping(status.ping))
                         DetailRow("Uptime (24h)", FormatterHelper.uptimePercentage(status.uptime))
-                        DetailRow("Last check", FormatterHelper.relativeTime(status.lastCheck))
+                        DetailRow("Letzter Check", FormatterHelper.relativeTime(status.lastCheck))
                     }
                 }
             }
             .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button("Fertig") { dismiss() }
                 }
             }
         }
@@ -58,8 +57,6 @@ struct DetailView: View {
     }
 }
 
-/// `LabeledContent` needs iOS 16 — this project's deployment target is
-/// iOS 15.0, so a plain HStack stands in for it.
 private struct DetailRow: View {
     let label: String
     let value: String
@@ -71,9 +68,9 @@ private struct DetailRow: View {
 
     var body: some View {
         HStack {
-            Text(label).foregroundColor(.secondary)
+            Text(label).foregroundStyle(Theme.textMuted)
             Spacer()
-            Text(value)
+            Text(value).foregroundStyle(Theme.textPrimary)
         }
     }
 }

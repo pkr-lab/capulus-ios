@@ -1,9 +1,7 @@
 import SwiftUI
 
 /// Lets the user paste the bearer token generated in
-/// docs/43-carplay-api.md ("Ersteinrichtung") into the Keychain. Not part
-/// of the original file list, but the API client is useless without
-/// somewhere to put the token — see ios/README.md "Ersteinrichtung".
+/// docs/43-carplay-api.md ("Ersteinrichtung") into the Keychain.
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var token: String = ""
@@ -17,15 +15,15 @@ struct SettingsView: View {
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true) // .autocorrectionDisabled() needs iOS 16; target here is 15.0
                 } header: {
-                    Text("carplay-api token")
+                    Text("carplay-api Token")
                 } footer: {
-                    Text("Generated via kubeseal when carplay-api was set up — see docs/43-carplay-api.md \"Ersteinrichtung\" in the capulus-core repo.")
+                    Text("Erzeugt per kubeseal beim Einrichten von carplay-api — siehe docs/43-carplay-api.md \"Ersteinrichtung\" im capulus-core-Repo.")
                 }
 
                 Section {
-                    Button("Save to Keychain") { save() }
+                    Button("In Keychain speichern") { save() }
                         .disabled(token.isEmpty)
-                    Button("Remove stored token", role: .destructive) { remove() }
+                    Button("Gespeichertes Token entfernen", role: .destructive) { remove() }
                 }
 
                 if let statusMessage {
@@ -35,15 +33,15 @@ struct SettingsView: View {
                     }
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle("Einstellungen")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button("Fertig") { dismiss() }
                 }
             }
             .onAppear {
                 if (try? KeychainService.shared.getToken()) != nil {
-                    statusMessage = "A token is currently stored."
+                    statusMessage = "Es ist bereits ein Token gespeichert."
                 }
             }
         }
@@ -52,15 +50,15 @@ struct SettingsView: View {
     private func save() {
         do {
             try KeychainService.shared.saveToken(token)
-            statusMessage = "Token saved."
+            statusMessage = "Token gespeichert."
             token = ""
         } catch {
-            statusMessage = "Failed to save: \(error.localizedDescription)"
+            statusMessage = "Speichern fehlgeschlagen: \(error.localizedDescription)"
         }
     }
 
     private func remove() {
         KeychainService.shared.deleteToken()
-        statusMessage = "Token removed."
+        statusMessage = "Token entfernt."
     }
 }
