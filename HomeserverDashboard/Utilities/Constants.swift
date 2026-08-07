@@ -18,13 +18,13 @@ enum Constants {
 
     static let requestTimeout: TimeInterval = 10
 
-    /// CarPlay list rows are narrow — keep titles/subtitles short so they
-    /// don't get truncated mid-word by the system.
+    /// Keep alert titles/subtitles short so they don't get truncated
+    /// mid-word by the system on narrower cards.
     static let maxAlertTitleLength = 20
     static let maxAlertSubtitleLength = 30
 
     enum Keychain {
-        static let service = "com.yourname.homeserver-carplay"
+        static let service = "com.yourname.homeserver-dashboard"
         static let tokenAccount = "carplay-api-bearer-token"
     }
 }
