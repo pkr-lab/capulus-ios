@@ -1,16 +1,16 @@
 import SwiftUI
 
-/// Left column: ntfy alerts.
+/// ntfy alerts, most recent first.
 struct AlertsGridView: View {
     let alerts: [Alert]
     let onSelect: (Alert) -> Void
 
     var body: some View {
-        SectionCard(title: "Alerts") {
+        SectionCard(title: "Alerts", systemImage: "bell.fill") {
             if alerts.isEmpty {
-                Text("No active alerts")
+                Text("Keine aktiven Alerts")
                     .font(.system(size: 13))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Theme.textMuted)
             } else {
                 VStack(spacing: 8) {
                     ForEach(alerts) { alert in
@@ -31,21 +31,21 @@ private struct AlertRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Image(systemName: StatusPalette.sfSymbol(for: alert.level))
-                .foregroundColor(StatusPalette.color(for: alert.level))
+                .foregroundStyle(StatusPalette.color(for: alert.level))
                 .font(.system(size: 18))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(FormatterHelper.truncate(alert.title, maxLength: Constants.maxAlertTitleLength))
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Theme.textPrimary)
                 Text(FormatterHelper.truncate(alert.message, maxLength: Constants.maxAlertSubtitleLength))
                     .font(.system(size: 13))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(Theme.textMuted)
             }
             Spacer()
         }
-        .padding(8)
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(8)
+        .padding(10)
+        .background(Theme.glassBackgroundStrong)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
     }
 }
