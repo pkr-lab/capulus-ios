@@ -16,7 +16,7 @@ targets:
         excludes:
           - "Info.plist"
           - "HomeserverDashboard.entitlements"
-      - path: ../docs/assets/homeserver-root-ca.pem
+      - path: Resources/homeserver-root-ca.pem
         buildPhase: resources
     info:
       path: HomeserverDashboard/Info.plist
