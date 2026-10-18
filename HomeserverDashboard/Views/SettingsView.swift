@@ -19,7 +19,7 @@ struct SettingsView: View {
                 } header: {
                     Text("carplay-api Token")
                 } footer: {
-                    Text("Erzeugt per kubeseal beim Einrichten von carplay-api — siehe docs/3-apps-workloads/300d0-carplay-api.md \"Ersteinrichtung\" im capulus-core-Repo.")
+                    Text("Erzeugt per kubeseal beim Einrichten von carplay-api — siehe capulus-core/3-apps-workloads/300d0-carplay-api.md \"Ersteinrichtung\" im Repo pkr-lab-docs.")
                 }
 
                 Section {
@@ -65,7 +65,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Vereinsheim-WoL-Agent-Token")
                 } footer: {
-                    Text("Auf dem Pi selbst erzeugt (docs/3-apps-workloads/30020-vereinsheim-alarmmonitor.md im capulus-core-Repo, Abschnitt \"Wake-on-LAN für den Windows-PC\") — auslesen mit: ssh pela@vereinsheim-alarmmonitor sudo cat /etc/banana-pi-wol-agent/token")
+                    Text("Auf dem Pi selbst erzeugt (capulus-ansible/3-apps-workloads/30020-vereinsheim-alarmmonitor.md im Repo pkr-lab-docs, Abschnitt \"Wake-on-LAN für den Windows-PC\") — auslesen mit: ssh pela@vereinsheim-alarmmonitor sudo cat /etc/banana-pi-wol-agent/token")
                 }
 
                 Section {
