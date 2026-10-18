@@ -247,7 +247,7 @@ private struct HomeserverPowerCard: View {
                     }
                 }
 
-                Text("Kein Wake-on-LAN möglich — der Homeserver ist der einzige Dauerläufer im Cluster (siehe docs/a-betriebssystem/a0010-overview.md).")
+                Text("Kein Wake-on-LAN möglich — der Homeserver ist der einzige Dauerläufer im Cluster (siehe capulus-ansible/a-betriebssystem/a0010-overview.md im Repo pkr-lab-docs).")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.textMuted)
 
