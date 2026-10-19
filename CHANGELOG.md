@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/pkr-lab/capulus-ios/compare/v1.0.0...v1.0.1) (2026-10-19)
+
+### Bug Fixes
+
+* **renovate:** Zeitplan auf ganzen Montag erweitern ([a1439b7](https://github.com/pkr-lab/capulus-ios/commit/a1439b71d6ae69ba8f32be424963bd8afd334ca5))
+
 ## 1.0.0 (2026-10-18)
 
 ### Features
