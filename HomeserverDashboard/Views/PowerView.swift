@@ -25,12 +25,9 @@ struct PowerView: View {
                             onEditingChanged: handleBrightnessEditingChanged
                         )
 
-                        PowerTargetCard(
-                            target: .worker0,
-                            isOnline: host("worker-0")?.online ?? false,
-                            isBusy: powerViewModel.pendingAction == .worker0,
-                            onWake: { Task { await powerViewModel.wake(.worker0) } },
-                            onShutdown: { confirmingShutdown = .worker0 }
+                        ControlPlaneStatusCard(
+                            name: "ControlPlane-1",
+                            isOnline: host("controlplane-1")?.online ?? false
                         )
                         PowerTargetCard(
                             target: .worker1,
@@ -226,6 +223,31 @@ private struct PowerTargetCard: View {
     }
 }
 
+private struct ControlPlaneStatusCard: View {
+    let name: String
+    let isOnline: Bool
+
+    var body: some View {
+        SectionCard(title: name, systemImage: "server.rack") {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(isOnline ? Theme.statusGood : Theme.statusBad)
+                        .frame(width: 8, height: 8)
+                    Text(isOnline ? "Online" : "Nicht erreichbar")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.textMuted)
+                    Spacer()
+                }
+
+                Text("Läuft dauerhaft und wird nicht per Wake-on-LAN oder Shutdown gesteuert.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.textMuted)
+            }
+        }
+    }
+}
+
 private struct HomeserverPowerCard: View {
     let isOnline: Bool
     let isBusy: Bool
@@ -247,7 +269,7 @@ private struct HomeserverPowerCard: View {
                     }
                 }
 
-                Text("Kein Wake-on-LAN möglich — der Homeserver ist der einzige Dauerläufer im Cluster (siehe capulus-ansible/a-betriebssystem/a0010-overview.md im Repo pkr-lab-docs).")
+                Text("Kein Wake-on-LAN möglich. ControlPlane-0 läuft dauerhaft; ohne ihn ist die Kubernetes-API nicht schreibbar, auch wenn ControlPlane-1 läuft (siehe capulus-ansible/a-betriebssystem/a0010-overview.md im Repo pkr-lab-docs).")
                     .font(.system(size: 12))
                     .foregroundStyle(Theme.textMuted)
 
@@ -344,7 +366,7 @@ private struct HomeserverShutdownSheet: View {
                             Text("Achtung")
                                 .font(.system(size: 22, weight: .bold))
                                 .foregroundStyle(Theme.textPrimary)
-                            Text("Das schaltet den gesamten Homeserver aus — damit auch Kubernetes, ArgoCD, diese API und alle darauf laufenden Dienste. Kein harter Stopp: der Node wird erst cordoned und gedrained, jeder Dienst bekommt Zeit zum sauberen Beenden, danach stoppt k3s und erst dann folgt der Poweroff. Das dauert dadurch etwas länger als ein sofortiger Shutdown. Ein Wiedereinschalten ist nur vor Ort möglich, es gibt keinen Wake-on-LAN-Weg für den Homeserver.")
+                            Text("Das schaltet den gesamten Homeserver aus — damit auch Kubernetes, ArgoCD, diese API und alle darauf laufenden Dienste. Kein harter Stopp: der Node wird erst cordoned und gedrained, jeder Dienst bekommt Zeit zum sauberen Beenden, danach stoppt k3s und erst dann folgt der Poweroff. Das dauert dadurch etwas länger als ein sofortiger Shutdown. Ein Wiedereinschalten ist nur vor Ort möglich, es gibt keinen Wake-on-LAN-Weg für den Homeserver. ControlPlane-1 allein reicht nicht: mit nur zwei Control-Planes ist die Kubernetes-API ohne ControlPlane-0 nicht schreibbar, bereits laufende Dienste auf ControlPlane-1 laufen aber weiter.")
                                 .font(.system(size: 14))
                                 .foregroundStyle(Theme.textMuted)
                         }
