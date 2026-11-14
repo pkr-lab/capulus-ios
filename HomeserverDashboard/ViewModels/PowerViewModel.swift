@@ -10,7 +10,6 @@ final class PowerViewModel: ObservableObject {
 
     @Published var pendingAction: PowerTarget?
     @Published var actionError: String?
-    @Published var lastActionSucceeded: PowerTarget?
 
     @Published var pendingRemoteWol: RemoteWolTarget?
     @Published var remoteWolError: String?
@@ -46,7 +45,6 @@ final class PowerViewModel: ObservableObject {
         actionError = nil
         do {
             try await apiClient.wake(target: target)
-            lastActionSucceeded = target
         } catch {
             actionError = error.localizedDescription
         }
@@ -59,7 +57,6 @@ final class PowerViewModel: ObservableObject {
         actionError = nil
         do {
             try await apiClient.shutdown(target: target, code: code)
-            lastActionSucceeded = target
         } catch {
             actionError = error.localizedDescription
         }
