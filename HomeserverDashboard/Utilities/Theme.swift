@@ -22,7 +22,7 @@ enum Theme {
     static let radiusLarge: CGFloat = 24
     static let radiusPill: CGFloat = 999
 
-    // MARK: Status colors (semantic, not brand — green/orange/red keep
+    // MARK: Status colors
     static let statusGood = Color(hex: 0x34c759)
     static let statusWarning = Color(hex: 0xff9500)
     static let statusBad = Color(hex: 0xff3b30)
