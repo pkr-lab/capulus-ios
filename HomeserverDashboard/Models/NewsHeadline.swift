@@ -1,6 +1,6 @@
 import Foundation
 
-enum NewsSource: String, CaseIterable {
+enum NewsSource: String {
     case tagesschau = "Tagesschau"
     case heise = "Heise"
     case welt = "WELT"

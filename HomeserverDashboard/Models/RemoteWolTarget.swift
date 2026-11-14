@@ -1,6 +1,6 @@
 import Foundation
 
-enum RemoteWolTarget: String, Identifiable, CaseIterable {
+enum RemoteWolTarget: String, Identifiable {
     case windowsPC = "windows-pc"
 
     var id: String { rawValue }

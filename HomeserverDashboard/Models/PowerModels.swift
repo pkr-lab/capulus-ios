@@ -4,7 +4,7 @@ struct BrightnessResponse: Codable {
     let percent: Int
 }
 
-enum PowerTarget: String, Codable, CaseIterable, Identifiable {
+enum PowerTarget: String, Codable, Identifiable {
     case homeserver
     case worker1 = "worker-1"
 
