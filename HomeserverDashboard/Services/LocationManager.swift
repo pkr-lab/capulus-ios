@@ -1,5 +1,4 @@
 import CoreLocation
-import Combine
 
 enum LocationError: LocalizedError {
     case denied
@@ -9,10 +8,8 @@ enum LocationError: LocalizedError {
     }
 }
 
-final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+final class LocationManager: NSObject, CLLocationManagerDelegate {
     static let shared = LocationManager()
-
-    @Published private(set) var authorizationStatus: CLAuthorizationStatus = .notDetermined
 
     private let manager = CLLocationManager()
     private var continuation: CheckedContinuation<CLLocation, Error>?
@@ -21,7 +18,6 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        authorizationStatus = manager.authorizationStatus
     }
 
     func requestLocation() async throws -> CLLocation {
@@ -48,7 +44,6 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        authorizationStatus = manager.authorizationStatus
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
             if continuation != nil { manager.requestLocation() }

@@ -8,7 +8,7 @@ struct TankstellenView: View {
     @State private var isLoading = false
 
     private let client = TankerkoenigAPIClient()
-    @ObservedObject private var locationManager = LocationManager.shared
+    private let locationManager = LocationManager.shared
     @State private var showingSettings = false
 
     var body: some View {
