@@ -98,8 +98,4 @@ final class KeychainService {
         ]
         SecItemDelete(query as CFDictionary)
     }
-
-    func clientIdentity() -> SecIdentity? {
-        nil
-    }
 }
