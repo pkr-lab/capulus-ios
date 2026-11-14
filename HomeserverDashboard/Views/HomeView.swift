@@ -4,6 +4,7 @@ struct HomeView: View {
     @ObservedObject private var viewModel = DashboardViewModel.shared
     @ObservedObject private var connectivity = TailscaleConnectivity.shared
     @State private var selectedService: ServiceStatus?
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationView {
@@ -44,6 +45,16 @@ struct HomeView: View {
             .task {
                 viewModel.startAutoRefresh()
                 await viewModel.fetchUpdates()
+            }
+            .onChange(of: scenePhase) { phase in
+                switch phase {
+                case .active:
+                    viewModel.startAutoRefresh()
+                case .background:
+                    viewModel.stopAutoRefresh()
+                default:
+                    break
+                }
             }
             .sheet(item: Binding(
                 get: { selectedService.map(ServiceStatusDetailItem.init) },
