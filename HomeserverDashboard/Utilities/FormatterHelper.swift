@@ -23,10 +23,14 @@ enum FormatterHelper {
         String(format: "%.2f%%", value)
     }
 
-    static func relativeTime(_ unixSeconds: Int64) -> String {
-        let date = Date(timeIntervalSince1970: TimeInterval(unixSeconds))
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: date, relativeTo: Date())
+        return formatter
+    }()
+
+    static func relativeTime(_ unixSeconds: Int64) -> String {
+        let date = Date(timeIntervalSince1970: TimeInterval(unixSeconds))
+        return relativeFormatter.localizedString(for: date, relativeTo: Date())
     }
 }
