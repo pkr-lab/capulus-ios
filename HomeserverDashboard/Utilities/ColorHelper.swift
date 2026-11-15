@@ -23,6 +23,7 @@ enum StatusPalette {
         case .down: return Theme.statusBad
         case .maintenance: return Theme.statusWarning
         case .paused: return Theme.textMuted
+        case .unknown: return Theme.textMuted
         }
     }
 
@@ -32,6 +33,16 @@ enum StatusPalette {
         case .down: return "xmark.circle.fill"
         case .maintenance: return "wrench.and.screwdriver.fill"
         case .paused: return "pause.circle.fill"
+        case .unknown: return "questionmark.circle.fill"
+        }
+    }
+
+    static func color(forTemperature celsius: Double) -> Color {
+        switch celsius {
+        case ..<60: return Theme.statusGood
+        case 60..<75: return Color(hex: 0xffcc00)
+        case 75..<85: return Theme.statusWarning
+        default: return Theme.statusBad
         }
     }
 

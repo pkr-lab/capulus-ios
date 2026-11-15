@@ -2,84 +2,39 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var token: String = ""
-    @State private var statusMessage: String?
-    @State private var tankerkoenigKey: String = ""
-    @State private var tankerkoenigStatusMessage: String?
-    @State private var wolAgentToken: String = ""
-    @State private var wolAgentStatusMessage: String?
 
     var body: some View {
         NavigationView {
             Form {
-                Section {
-                    SecureField("Bearer token", text: $token)
-                        .textInputAutocapitalization(.never)
-                        .disableAutocorrection(true)
-                } header: {
-                    Text("carplay-api Token")
-                } footer: {
-                    Text("Erzeugt per kubeseal beim Einrichten von carplay-api — siehe capulus-core/3-apps-workloads/300d0-carplay-api.md \"Ersteinrichtung\" im Repo pkr-lab-docs.")
-                }
+                KeychainSecretSection(
+                    title: "carplay-api Token",
+                    placeholder: "Bearer token",
+                    footer: "Erzeugt per kubeseal beim Einrichten von carplay-api — siehe capulus-core/3-apps-workloads/300d0-carplay-api.md \"Ersteinrichtung\" im Repo pkr-lab-docs.",
+                    noun: .token,
+                    read: KeychainService.shared.getToken,
+                    save: KeychainService.shared.saveToken,
+                    delete: KeychainService.shared.deleteToken
+                )
 
-                Section {
-                    Button("In Keychain speichern") { save() }
-                        .disabled(token.isEmpty)
-                    Button("Gespeichertes Token entfernen", role: .destructive) { remove() }
-                }
+                KeychainSecretSection(
+                    title: "Tankerkönig API-Key",
+                    placeholder: "API-Key",
+                    footer: "Für die Tankstellen-Seite im Alltag-Modus. Kostenlosen Key registrieren: creativecommons.tankerkoenig.de",
+                    noun: .key,
+                    read: KeychainService.shared.getTankerkoenigAPIKey,
+                    save: KeychainService.shared.saveTankerkoenigAPIKey,
+                    delete: KeychainService.shared.deleteTankerkoenigAPIKey
+                )
 
-                if let statusMessage {
-                    Section {
-                        Text(statusMessage)
-                            .foregroundColor(.secondary)
-                    }
-                }
-
-                Section {
-                    SecureField("API-Key", text: $tankerkoenigKey)
-                        .textInputAutocapitalization(.never)
-                        .disableAutocorrection(true)
-                } header: {
-                    Text("Tankerkönig API-Key")
-                } footer: {
-                    Text("Für die Tankstellen-Seite im Alltag-Modus. Kostenlosen Key registrieren: creativecommons.tankerkoenig.de")
-                }
-
-                Section {
-                    Button("In Keychain speichern") { saveTankerkoenigKey() }
-                        .disabled(tankerkoenigKey.isEmpty)
-                    Button("Gespeicherten Key entfernen", role: .destructive) { removeTankerkoenigKey() }
-                }
-
-                if let tankerkoenigStatusMessage {
-                    Section {
-                        Text(tankerkoenigStatusMessage)
-                            .foregroundColor(.secondary)
-                    }
-                }
-
-                Section {
-                    SecureField("Bearer token", text: $wolAgentToken)
-                        .textInputAutocapitalization(.never)
-                        .disableAutocorrection(true)
-                } header: {
-                    Text("Vereinsheim-WoL-Agent-Token")
-                } footer: {
-                    Text("Auf dem Pi selbst erzeugt (capulus-ansible/3-apps-workloads/30020-vereinsheim-alarmmonitor.md im Repo pkr-lab-docs, Abschnitt \"Wake-on-LAN für den Windows-PC\") — auslesen mit: ssh pela@vereinsheim-alarmmonitor sudo cat /etc/banana-pi-wol-agent/token")
-                }
-
-                Section {
-                    Button("In Keychain speichern") { saveWolAgentToken() }
-                        .disabled(wolAgentToken.isEmpty)
-                    Button("Gespeichertes Token entfernen", role: .destructive) { removeWolAgentToken() }
-                }
-
-                if let wolAgentStatusMessage {
-                    Section {
-                        Text(wolAgentStatusMessage)
-                            .foregroundColor(.secondary)
-                    }
-                }
+                KeychainSecretSection(
+                    title: "Vereinsheim-WoL-Agent-Token",
+                    placeholder: "Bearer token",
+                    footer: "Auf dem Pi selbst erzeugt (capulus-ansible/3-apps-workloads/30020-vereinsheim-alarmmonitor.md im Repo pkr-lab-docs, Abschnitt \"Wake-on-LAN für den Windows-PC\") — auslesen mit: ssh pela@vereinsheim-alarmmonitor sudo cat /etc/banana-pi-wol-agent/token",
+                    noun: .token,
+                    read: KeychainService.shared.getWolAgentToken,
+                    save: KeychainService.shared.saveWolAgentToken,
+                    delete: KeychainService.shared.deleteWolAgentToken
+                )
             }
             .navigationTitle("Einstellungen")
             .toolbar {
@@ -87,62 +42,101 @@ struct SettingsView: View {
                     Button("Fertig") { dismiss() }
                 }
             }
-            .onAppear {
-                if (try? KeychainService.shared.getToken()) != nil {
-                    statusMessage = "Es ist bereits ein Token gespeichert."
-                }
-                if (try? KeychainService.shared.getTankerkoenigAPIKey()) != nil {
-                    tankerkoenigStatusMessage = "Es ist bereits ein Key gespeichert."
-                }
-                if (try? KeychainService.shared.getWolAgentToken()) != nil {
-                    wolAgentStatusMessage = "Es ist bereits ein Token gespeichert."
-                }
+        }
+    }
+}
+
+private enum SecretNoun {
+    case token
+    case key
+
+    var stored: String {
+        switch self {
+        case .token: return "Es ist bereits ein Token gespeichert."
+        case .key: return "Es ist bereits ein Key gespeichert."
+        }
+    }
+
+    var saved: String {
+        switch self {
+        case .token: return "Token gespeichert."
+        case .key: return "Key gespeichert."
+        }
+    }
+
+    var removed: String {
+        switch self {
+        case .token: return "Token entfernt."
+        case .key: return "Key entfernt."
+        }
+    }
+
+    var removeLabel: String {
+        switch self {
+        case .token: return "Gespeichertes Token entfernen"
+        case .key: return "Gespeicherten Key entfernen"
+        }
+    }
+}
+
+private struct KeychainSecretSection: View {
+    let title: String
+    let placeholder: String
+    let footer: String
+    let noun: SecretNoun
+    let read: () throws -> String
+    let save: (String) throws -> Void
+    let delete: () throws -> Void
+
+    @State private var value = ""
+    @State private var statusMessage: String?
+
+    var body: some View {
+        Section {
+            SecureField(placeholder, text: $value)
+                .textInputAutocapitalization(.never)
+                .disableAutocorrection(true)
+        } header: {
+            Text(title)
+        } footer: {
+            Text(footer)
+        }
+
+        Section {
+            Button("In Keychain speichern") { store() }
+                .disabled(value.isEmpty)
+            Button(noun.removeLabel, role: .destructive) { remove() }
+        }
+        .onAppear {
+            if (try? read()) != nil {
+                statusMessage = noun.stored
+            }
+        }
+
+        if let statusMessage {
+            Section {
+                Text(statusMessage)
+                    .foregroundColor(.secondary)
             }
         }
     }
 
-    private func save() {
+    private func store() {
         do {
-            try KeychainService.shared.saveToken(token)
-            statusMessage = "Token gespeichert."
-            token = ""
+            try save(value)
+            statusMessage = noun.saved
+            value = ""
         } catch {
             statusMessage = "Speichern fehlgeschlagen: \(error.localizedDescription)"
         }
     }
 
     private func remove() {
-        KeychainService.shared.deleteToken()
-        statusMessage = "Token entfernt."
-    }
-
-    private func saveTankerkoenigKey() {
         do {
-            try KeychainService.shared.saveTankerkoenigAPIKey(tankerkoenigKey)
-            tankerkoenigStatusMessage = "Key gespeichert."
-            tankerkoenigKey = ""
+            try delete()
+            statusMessage = noun.removed
         } catch {
-            tankerkoenigStatusMessage = "Speichern fehlgeschlagen: \(error.localizedDescription)"
+            statusMessage = "Entfernen fehlgeschlagen: \(error.localizedDescription)"
         }
-    }
-
-    private func removeTankerkoenigKey() {
-        KeychainService.shared.deleteTankerkoenigAPIKey()
-        tankerkoenigStatusMessage = "Key entfernt."
-    }
-
-    private func saveWolAgentToken() {
-        do {
-            try KeychainService.shared.saveWolAgentToken(wolAgentToken)
-            wolAgentStatusMessage = "Token gespeichert."
-            wolAgentToken = ""
-        } catch {
-            wolAgentStatusMessage = "Speichern fehlgeschlagen: \(error.localizedDescription)"
-        }
-    }
-
-    private func removeWolAgentToken() {
-        KeychainService.shared.deleteWolAgentToken()
-        wolAgentStatusMessage = "Token entfernt."
     }
 }

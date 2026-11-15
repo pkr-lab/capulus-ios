@@ -44,8 +44,7 @@ private struct StatusRow: View {
             Spacer()
         }
         .padding(10)
-        .background(Theme.glassBackgroundStrong)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+        .glassTile()
     }
 
     private var subtitle: String {
@@ -58,6 +57,8 @@ private struct StatusRow: View {
             return "MAINTENANCE"
         case .paused:
             return "PAUSED"
+        case .unknown:
+            return "UNBEKANNT"
         }
     }
 }

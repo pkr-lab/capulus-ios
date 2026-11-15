@@ -44,7 +44,6 @@ private struct AlertRow: View {
             Spacer()
         }
         .padding(10)
-        .background(Theme.glassBackgroundStrong)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+        .glassTile()
     }
 }

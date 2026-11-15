@@ -8,31 +8,26 @@ enum APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .badResponse(let statusCode, let message):
-            return message ?? "carplay-api returned HTTP \(statusCode)"
+            return message ?? "Server antwortete mit HTTP \(statusCode)"
         case .decodingFailed(let error):
-            return "Could not parse response: \(error.localizedDescription)"
+            return "Antwort konnte nicht gelesen werden: \(error.localizedDescription)"
         case .missingToken:
-            return "No API token stored in Keychain — open Settings to add one."
+            return "Kein Token im Schlüsselbund gespeichert, bitte in den Einstellungen eintragen."
         }
     }
 }
 
 final class HomeserverAPIClient {
+    static let shared = HomeserverAPIClient()
+
     private let baseURL: URL
     private let session: URLSession
-    private let decoder: JSONDecoder
-    private let encoder: JSONEncoder
+    private let decoder = JSONDecoder()
+    private let encoder = JSONEncoder()
 
-    init(baseURL: URL = Constants.apiBaseURL) {
+    init(baseURL: URL = Constants.apiBaseURL, session: URLSession = HomeserverHTTP.session) {
         self.baseURL = baseURL
-
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = Constants.requestTimeout
-        config.waitsForConnectivity = false
-
-        self.session = URLSession(configuration: config, delegate: MTLSDelegate(), delegateQueue: nil)
-        self.decoder = JSONDecoder()
-        self.encoder = JSONEncoder()
+        self.session = session
     }
 
     func getDashboard() async throws -> DashboardPayload {
@@ -81,40 +76,18 @@ final class HomeserverAPIClient {
         urlRequest.httpMethod = method
         urlRequest.timeoutInterval = Constants.requestTimeout
 
-        if let token = try? KeychainService.shared.getToken() {
-            urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+        let token = try HomeserverHTTP.bearerToken(KeychainService.shared.getToken)
+        urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         if let jsonBody {
             urlRequest.httpBody = jsonBody
             urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
 
-        let (data, response): (Data, URLResponse) = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(Data, URLResponse), Error>) in
-            let task = session.dataTask(with: urlRequest) { data, response, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                    return
-                }
-                guard let data, let response else {
-                    continuation.resume(throwing: URLError(.badServerResponse))
-                    return
-                }
-                continuation.resume(returning: (data, response))
-            }
-            task.resume()
-        }
-
         do {
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-                TailscaleConnectivity.shared.recordRequestResult(succeeded: false)
-                let message = (try? decoder.decode(ErrorBody.self, from: data))?.error
-                throw APIError.badResponse(statusCode: status, message: message)
-            }
+            let (data, response) = try await HomeserverHTTP.data(for: urlRequest, session: session)
+            let httpResponse = try HomeserverHTTP.successResponse(response, data: data)
             TailscaleConnectivity.shared.recordRequestResult(succeeded: true)
             return (data, httpResponse)
-        } catch let error as APIError {
-            throw error
         } catch {
             TailscaleConnectivity.shared.recordRequestResult(succeeded: false)
             throw error
@@ -122,16 +95,8 @@ final class HomeserverAPIClient {
     }
 }
 
-private struct ErrorBody: Decodable {
-    let error: String
-}
-
 private struct BrightnessRequestBody: Encodable {
     let percent: Int
-}
-
-private struct WakeRequestBody: Encodable {
-    let target: String
 }
 
 private struct ShutdownRequestBody: Encodable {

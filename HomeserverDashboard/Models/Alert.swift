@@ -13,6 +13,17 @@ struct Alert: Codable, Identifiable, Equatable {
         case id, topic, title, message, time, level
         case pollId = "poll_id"
     }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        topic = try container.decodeIfPresent(String.self, forKey: .topic) ?? ""
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+        message = try container.decodeIfPresent(String.self, forKey: .message) ?? ""
+        time = try container.decodeIfPresent(Int64.self, forKey: .time) ?? 0
+        level = try container.decodeIfPresent(AlertLevel.self, forKey: .level) ?? .info
+        pollId = try container.decodeIfPresent(String.self, forKey: .pollId)
+        id = try container.decodeIfPresent(String.self, forKey: .id) ?? "\(topic)-\(time)-\(title)"
+    }
 }
 
 enum AlertLevel: String, Codable {

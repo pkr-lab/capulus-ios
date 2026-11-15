@@ -10,8 +10,8 @@ struct HomeView: View {
             ScreenBackground {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        if !connectivity.isLikelyReachable {
-                            OfflineBanner()
+                        if !connectivity.isLikelyReachable || viewModel.error != nil {
+                            OfflineBanner(detail: viewModel.error)
                         }
 
                         HostCardsView(hosts: viewModel.dashboard?.hosts ?? [])
@@ -23,9 +23,14 @@ struct HomeView: View {
 
                         ServiceActivityCard(activity: viewModel.dashboard?.serviceActivity ?? [])
 
-                        UpdatesCard(updates: viewModel.appUpdates)
+                        UpdatesCard(updates: viewModel.appUpdates, error: viewModel.updatesError)
 
-                        if let lastUpdate = viewModel.lastUpdate {
+                        if viewModel.isLoading {
+                            Text("Aktualisiere …")
+                                .font(.system(size: 12))
+                                .foregroundStyle(Theme.textMuted)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        } else if let lastUpdate = viewModel.lastUpdate {
                             Text("Aktualisiert \(FormatterHelper.relativeTime(Int64(lastUpdate.timeIntervalSince1970)))")
                                 .font(.system(size: 12))
                                 .foregroundStyle(Theme.textMuted)
@@ -74,9 +79,7 @@ private struct ServiceActivityCard: View {
     var body: some View {
         SectionCard(title: "Dienst-Aktivität", systemImage: "chart.bar.fill") {
             if sorted.isEmpty {
-                Text("Keine Daten")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.textMuted)
+                NoDataText()
             } else {
                 VStack(spacing: 10) {
                     ForEach(sorted) { entry in
@@ -124,14 +127,19 @@ private struct ServiceActivityRow: View {
 
 private struct UpdatesCard: View {
     let updates: [AppUpdate]
+    let error: String?
 
     private var available: [AppUpdate] { updates.filter { $0.hasUpdate == true } }
     private var unknown: [AppUpdate] { updates.filter { $0.hasUpdate == nil } }
 
     var body: some View {
-        if !updates.isEmpty {
+        if !updates.isEmpty || error != nil {
             SectionCard(title: "Updates", systemImage: "arrow.down.circle.fill") {
-                if available.isEmpty {
+                if let error {
+                    Text("Updates konnten nicht geladen werden: \(error)")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.statusWarning)
+                } else if available.isEmpty {
                     Text("Alle Apps aktuell.")
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.textMuted)
@@ -165,8 +173,7 @@ private struct UpdateRow: View {
             }
         }
         .padding(10)
-        .background(Theme.glassBackgroundStrong)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+        .glassTile()
     }
 
     private var content: some View {
@@ -187,11 +194,19 @@ private struct UpdateRow: View {
 }
 
 private struct OfflineBanner: View {
+    let detail: String?
+
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             Image(systemName: "wifi.slash")
-            Text("Homeserver nicht erreichbar — zeige letzten bekannten Stand.")
-                .font(.system(size: 13))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Homeserver nicht erreichbar — zeige letzten bekannten Stand.")
+                    .font(.system(size: 13))
+                if let detail {
+                    Text(detail)
+                        .font(.system(size: 11))
+                }
+            }
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)

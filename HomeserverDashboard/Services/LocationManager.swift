@@ -28,13 +28,14 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
         if manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways,
            manager.accuracyAuthorization == .reducedAccuracy {
             try? await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: "TankstellenSuche") { error in
+                manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: Constants.locationPurposeKey) { error in
                     if let error { continuation.resume(throwing: error) } else { continuation.resume() }
                 }
             }
         }
 
         return try await withCheckedThrowingContinuation { continuation in
+            self.continuation?.resume(throwing: CancellationError())
             self.continuation = continuation
             if manager.authorizationStatus == .notDetermined {
                 manager.requestWhenInUseAuthorization()

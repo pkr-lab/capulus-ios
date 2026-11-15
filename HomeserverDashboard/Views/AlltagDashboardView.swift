@@ -8,8 +8,8 @@ struct AlltagDashboardView: View {
     @State private var pegel: PegelMeasurement?
     @State private var pegelError: String?
 
-    private let client = WeatherAPIClient()
-    private let pegelClient = PegelAPIClient()
+    private let client = WeatherAPIClient.shared
+    private let pegelClient = PegelAPIClient.shared
 
     var body: some View {
         NavigationView {
@@ -120,9 +120,7 @@ private struct TodayWeatherCard: View {
                     }
                 }
             } else {
-                Text("Keine Daten")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.textMuted)
+                NoDataText()
                     .frame(maxWidth: .infinity)
             }
         }
@@ -193,7 +191,7 @@ private struct SunPathView: View {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "HH:mm"
-        formatter.timeZone = TimeZone(identifier: "Europe/Berlin")
+        formatter.timeZone = Constants.timeZone
         return formatter
     }()
 }
@@ -216,8 +214,7 @@ private struct WeatherStatChip: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
-        .background(Theme.glassBackgroundStrong)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+        .glassTile()
     }
 }
 
@@ -242,9 +239,7 @@ private struct TomorrowWeatherCard: View {
                 }
                 .frame(maxWidth: .infinity)
             } else {
-                Text("Keine Daten")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.textMuted)
+                NoDataText()
                     .frame(maxWidth: .infinity)
             }
         }
@@ -316,7 +311,6 @@ private struct ServiceTile: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(Theme.glassBackgroundStrong)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+        .glassTile()
     }
 }

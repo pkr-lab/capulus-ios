@@ -9,7 +9,7 @@ final class TailscaleConnectivity: ObservableObject {
     @Published private(set) var lastRequestSucceeded = true
 
     private let monitor = NWPathMonitor()
-    private let queue = DispatchQueue(label: "com.yourname.homeserver-dashboard.pathmonitor")
+    private let queue = DispatchQueue(label: "\(Bundle.main.bundleIdentifier ?? "homeserver-dashboard").pathmonitor")
 
     private init() {
         monitor.pathUpdateHandler = { [weak self] path in

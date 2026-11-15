@@ -101,3 +101,35 @@ struct ScreenBackground<Content: View>: View {
         }
     }
 }
+
+struct GlassTile: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background(Theme.glassBackgroundStrong)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+    }
+}
+
+extension View {
+    func glassTile() -> some View {
+        modifier(GlassTile())
+    }
+}
+
+struct StatusDot: View {
+    let color: Color
+
+    var body: some View {
+        Circle()
+            .fill(color)
+            .frame(width: 8, height: 8)
+    }
+}
+
+struct NoDataText: View {
+    var body: some View {
+        Text("Keine Daten")
+            .font(.system(size: 13))
+            .foregroundStyle(Theme.textMuted)
+    }
+}
