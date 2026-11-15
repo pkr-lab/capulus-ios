@@ -10,7 +10,9 @@ enum NewsError: LocalizedError {
 }
 
 final class NewsAPIClient {
-    private let session = URLSession(configuration: .default)
+    static let shared = NewsAPIClient()
+
+    private let session = HomeserverHTTP.publicSession
     private let decoder = JSONDecoder()
 
     func getTopHeadline(from source: NewsSource) async throws -> NewsHeadline {

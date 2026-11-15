@@ -17,8 +17,8 @@ struct DashboardPayload: Codable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         alerts = try container.decodeIfPresent([Alert].self, forKey: .alerts) ?? []
         hosts = try container.decodeIfPresent([HostMetrics].self, forKey: .hosts) ?? []
-        status = try container.decode([ServiceStatus].self, forKey: .status)
+        status = try container.decodeIfPresent([ServiceStatus].self, forKey: .status) ?? []
         serviceActivity = try container.decodeIfPresent([ServiceActivity].self, forKey: .serviceActivity) ?? []
-        updatedAt = try container.decode(Int64.self, forKey: .updatedAt)
+        updatedAt = try container.decodeIfPresent(Int64.self, forKey: .updatedAt) ?? 0
     }
 }

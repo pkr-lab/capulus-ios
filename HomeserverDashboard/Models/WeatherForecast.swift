@@ -71,7 +71,7 @@ struct DayForecast {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
-        formatter.timeZone = TimeZone(identifier: "Europe/Berlin")
+        formatter.timeZone = Constants.timeZone
         return formatter
     }()
 }

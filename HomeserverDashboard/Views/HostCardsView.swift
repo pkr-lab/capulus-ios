@@ -32,9 +32,7 @@ private struct HostCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
-                Circle()
-                    .fill(Theme.statusGood)
-                    .frame(width: 8, height: 8)
+                StatusDot(color: Theme.statusGood)
                 Text(host.name)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(Theme.textPrimary)
@@ -55,7 +53,7 @@ private struct HostCard: View {
             if host.temperature > 0 {
                 HStack(spacing: 6) {
                     Image(systemName: "thermometer")
-                        .foregroundStyle(StatusPalette.color(forPercentage: host.temperature))
+                        .foregroundStyle(StatusPalette.color(forTemperature: host.temperature))
                     Text(FormatterHelper.celsius(host.temperature))
                         .foregroundStyle(Theme.textMuted)
                 }
@@ -63,8 +61,7 @@ private struct HostCard: View {
             }
         }
         .padding(12)
-        .background(Theme.glassBackgroundStrong)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+        .glassTile()
     }
 }
 

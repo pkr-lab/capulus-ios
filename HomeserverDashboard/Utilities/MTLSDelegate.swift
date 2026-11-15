@@ -3,7 +3,7 @@ import Security
 
 final class MTLSDelegate: NSObject, URLSessionDelegate {
     private static let pinnedHostSuffix = ".homeserver"
-    private static let pinnedHosts: Set<String> = ["100.123.214.4"]
+    private static let pinnedHosts: Set<String> = Set([Constants.wolAgentBaseURL.host].compactMap { $0 })
 
     private static let rootCertificate: SecCertificate? = {
         guard let url = Bundle.main.url(forResource: "homeserver-root-ca", withExtension: "pem"),

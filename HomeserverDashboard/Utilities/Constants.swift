@@ -9,6 +9,17 @@ enum Constants {
 
     static let requestTimeout: TimeInterval = 10
 
+    static let timeZoneIdentifier = "Europe/Berlin"
+    static let timeZone = TimeZone(identifier: timeZoneIdentifier) ?? .current
+
+    static let locationPurposeKey = "TankstellenSuche"
+
+    enum HostID {
+        static let homeserver = "homeserver"
+        static let controlPlane1 = "controlplane-1"
+        static let worker1 = "worker-1"
+    }
+
     static let maxAlertTitleLength = 20
     static let maxAlertSubtitleLength = 30
 

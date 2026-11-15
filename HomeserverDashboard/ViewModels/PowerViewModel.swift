@@ -15,8 +15,8 @@ final class PowerViewModel: ObservableObject {
     @Published var remoteWolError: String?
     @Published var lastRemoteWolSucceeded: RemoteWolTarget?
 
-    private let apiClient = HomeserverAPIClient()
-    private let wolAgentClient = RemoteWolAgentClient()
+    private let apiClient = HomeserverAPIClient.shared
+    private let wolAgentClient = RemoteWolAgentClient.shared
 
     private init() {}
 
