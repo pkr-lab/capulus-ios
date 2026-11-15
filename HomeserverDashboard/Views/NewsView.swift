@@ -5,7 +5,7 @@ struct NewsView: View {
     @State private var errors: [NewsSource: String] = [:]
     @State private var isLoading = false
 
-    private let client = NewsAPIClient()
+    private let client = NewsAPIClient.shared
 
     var body: some View {
         NavigationView {

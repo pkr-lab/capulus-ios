@@ -9,7 +9,9 @@ enum PegelError: LocalizedError {
 }
 
 final class PegelAPIClient {
-    private let session = URLSession(configuration: .default)
+    static let shared = PegelAPIClient()
+
+    private let session = HomeserverHTTP.publicSession
     private let decoder = JSONDecoder()
 
     func getCurrentMeasurement() async throws -> PegelMeasurement {

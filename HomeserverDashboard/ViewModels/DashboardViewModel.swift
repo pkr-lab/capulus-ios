@@ -11,9 +11,10 @@ final class DashboardViewModel: ObservableObject {
     @Published private(set) var lastUpdate: Date?
 
     @Published private(set) var appUpdates: [AppUpdate] = []
+    @Published private(set) var updatesError: String?
 
     private var refreshTask: Task<Void, Never>?
-    private let apiClient = HomeserverAPIClient()
+    private let apiClient = HomeserverAPIClient.shared
     private let refreshInterval: TimeInterval = Constants.refreshInterval
 
     private init() {}
@@ -44,7 +45,7 @@ final class DashboardViewModel: ObservableObject {
             dashboard = newDashboard
             lastUpdate = Date()
         } catch {
-            self.error = String(describing: error as NSError)
+            self.error = error.localizedDescription
         }
 
         isLoading = false
@@ -53,7 +54,9 @@ final class DashboardViewModel: ObservableObject {
     func fetchUpdates() async {
         do {
             appUpdates = try await apiClient.getUpdates().repos
+            updatesError = nil
         } catch {
+            updatesError = error.localizedDescription
         }
     }
 }

@@ -15,7 +15,9 @@ enum TankerkoenigError: LocalizedError {
 }
 
 final class TankerkoenigAPIClient {
-    private let session = URLSession(configuration: .default)
+    static let shared = TankerkoenigAPIClient()
+
+    private let session = HomeserverHTTP.publicSession
     private let decoder = JSONDecoder()
 
     func getPrices(stationIDs: [String]) async throws -> [String: TankerkoenigPricesResponse.StationPrices] {

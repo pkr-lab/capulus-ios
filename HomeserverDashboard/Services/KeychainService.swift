@@ -1,9 +1,19 @@
 import Foundation
 import Security
 
-enum KeychainError: Error {
+enum KeychainError: LocalizedError {
     case unhandled(OSStatus)
     case notFound
+
+    var errorDescription: String? {
+        switch self {
+        case .notFound:
+            return "Kein Eintrag im Schlüsselbund gefunden."
+        case .unhandled(let status):
+            let detail = SecCopyErrorMessageString(status, nil) as String? ?? "OSStatus \(status)"
+            return "Schlüsselbund-Fehler: \(detail)"
+        }
+    }
 }
 
 final class KeychainService {
@@ -20,8 +30,8 @@ final class KeychainService {
         try get(account: Constants.Keychain.tokenAccount)
     }
 
-    func deleteToken() {
-        delete(account: Constants.Keychain.tokenAccount)
+    func deleteToken() throws {
+        try delete(account: Constants.Keychain.tokenAccount)
     }
 
     func saveTankerkoenigAPIKey(_ key: String) throws {
@@ -32,8 +42,8 @@ final class KeychainService {
         try get(account: Constants.Keychain.tankerkoenigAPIKeyAccount)
     }
 
-    func deleteTankerkoenigAPIKey() {
-        delete(account: Constants.Keychain.tankerkoenigAPIKeyAccount)
+    func deleteTankerkoenigAPIKey() throws {
+        try delete(account: Constants.Keychain.tankerkoenigAPIKeyAccount)
     }
 
     func saveWolAgentToken(_ token: String) throws {
@@ -44,8 +54,8 @@ final class KeychainService {
         try get(account: Constants.Keychain.wolAgentTokenAccount)
     }
 
-    func deleteWolAgentToken() {
-        delete(account: Constants.Keychain.wolAgentTokenAccount)
+    func deleteWolAgentToken() throws {
+        try delete(account: Constants.Keychain.wolAgentTokenAccount)
     }
 
     private func save(_ value: String, account: String) throws {
@@ -90,12 +100,15 @@ final class KeychainService {
         return value
     }
 
-    private func delete(account: String) {
+    private func delete(account: String) throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
         ]
-        SecItemDelete(query as CFDictionary)
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainError.unhandled(status)
+        }
     }
 }

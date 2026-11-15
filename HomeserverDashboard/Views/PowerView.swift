@@ -17,51 +17,8 @@ struct PowerView: View {
         NavigationView {
             ScreenBackground {
                 ScrollView {
-                    VStack(spacing: 16) {
-                        BrightnessCard(
-                            sliderValue: $sliderValue,
-                            isLoading: powerViewModel.isLoadingBrightness && powerViewModel.brightness == nil,
-                            error: powerViewModel.brightnessError,
-                            onEditingChanged: handleBrightnessEditingChanged
-                        )
-
-                        ControlPlaneStatusCard(
-                            name: "ControlPlane-1",
-                            isOnline: host("controlplane-1")?.online ?? false
-                        )
-                        PowerTargetCard(
-                            target: .worker1,
-                            isOnline: host("worker-1")?.online ?? false,
-                            isBusy: powerViewModel.pendingAction == .worker1,
-                            onWake: { Task { await powerViewModel.wake(.worker1) } },
-                            onShutdown: { confirmingShutdown = .worker1 }
-                        )
-                        HomeserverPowerCard(
-                            isOnline: host("homeserver")?.online ?? true,
-                            isBusy: powerViewModel.pendingAction == .homeserver,
-                            onShutdown: { showingHomeserverWarning = true }
-                        )
-
-                        RemoteWolCard(
-                            target: .windowsPC,
-                            isBusy: powerViewModel.pendingRemoteWol == .windowsPC,
-                            lastSucceeded: powerViewModel.lastRemoteWolSucceeded == .windowsPC,
-                            onWake: { Task { await powerViewModel.wakeRemote(.windowsPC) } }
-                        )
-
-                        if let error = powerViewModel.actionError {
-                            Text(error)
-                                .font(.system(size: 13))
-                                .foregroundStyle(Theme.statusBad)
-                        }
-
-                        if let error = powerViewModel.remoteWolError {
-                            Text(error)
-                                .font(.system(size: 13))
-                                .foregroundStyle(Theme.statusBad)
-                        }
-                    }
-                    .padding(16)
+                    cards
+                        .padding(16)
                 }
             }
             .navigationTitle("Steuerung")
@@ -119,6 +76,53 @@ struct PowerView: View {
                     onCancel: { showingHomeserverWarning = false },
                     error: powerViewModel.actionError
                 )
+            }
+        }
+    }
+
+    private var cards: some View {
+        VStack(spacing: 16) {
+            BrightnessCard(
+                sliderValue: $sliderValue,
+                isLoading: powerViewModel.isLoadingBrightness && powerViewModel.brightness == nil,
+                error: powerViewModel.brightnessError,
+                onEditingChanged: handleBrightnessEditingChanged
+            )
+
+            ControlPlaneStatusCard(
+                name: "ControlPlane-1",
+                isOnline: host(Constants.HostID.controlPlane1)?.online ?? false
+            )
+            PowerTargetCard(
+                target: .worker1,
+                isOnline: host(Constants.HostID.worker1)?.online ?? false,
+                isBusy: powerViewModel.pendingAction == .worker1,
+                onWake: { Task { await powerViewModel.wake(.worker1) } },
+                onShutdown: { confirmingShutdown = .worker1 }
+            )
+            HomeserverPowerCard(
+                isOnline: host(Constants.HostID.homeserver)?.online ?? true,
+                isBusy: powerViewModel.pendingAction == .homeserver,
+                onShutdown: { showingHomeserverWarning = true }
+            )
+
+            RemoteWolCard(
+                target: .windowsPC,
+                isBusy: powerViewModel.pendingRemoteWol == .windowsPC,
+                lastSucceeded: powerViewModel.lastRemoteWolSucceeded == .windowsPC,
+                onWake: { Task { await powerViewModel.wakeRemote(.windowsPC) } }
+            )
+
+            if let error = powerViewModel.actionError {
+                Text(error)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.statusBad)
+            }
+
+            if let error = powerViewModel.remoteWolError {
+                Text(error)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.statusBad)
             }
         }
     }
@@ -191,9 +195,7 @@ private struct PowerTargetCard: View {
         SectionCard(title: target.displayName, systemImage: "desktopcomputer") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 6) {
-                    Circle()
-                        .fill(isOnline ? Theme.statusGood : Theme.textMuted)
-                        .frame(width: 8, height: 8)
+                    StatusDot(color: isOnline ? Theme.statusGood : Theme.textMuted)
                     Text(isOnline ? "Online" : "Offline")
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.textMuted)
@@ -231,9 +233,7 @@ private struct ControlPlaneStatusCard: View {
         SectionCard(title: name, systemImage: "server.rack") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 6) {
-                    Circle()
-                        .fill(isOnline ? Theme.statusGood : Theme.statusBad)
-                        .frame(width: 8, height: 8)
+                    StatusDot(color: isOnline ? Theme.statusGood : Theme.statusBad)
                     Text(isOnline ? "Online" : "Nicht erreichbar")
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.textMuted)
@@ -257,9 +257,7 @@ private struct HomeserverPowerCard: View {
         SectionCard(title: "Homeserver", systemImage: "server.rack") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 6) {
-                    Circle()
-                        .fill(isOnline ? Theme.statusGood : Theme.statusBad)
-                        .frame(width: 8, height: 8)
+                    StatusDot(color: isOnline ? Theme.statusGood : Theme.statusBad)
                     Text(isOnline ? "Online" : "Nicht erreichbar")
                         .font(.system(size: 13))
                         .foregroundStyle(Theme.textMuted)
@@ -359,38 +357,9 @@ private struct HomeserverShutdownSheet: View {
             ScreenBackground {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 32))
-                                .foregroundStyle(Theme.statusBad)
-                            Text("Achtung")
-                                .font(.system(size: 22, weight: .bold))
-                                .foregroundStyle(Theme.textPrimary)
-                            Text("Das schaltet den gesamten Homeserver aus — damit auch Kubernetes, ArgoCD, diese API und alle darauf laufenden Dienste. Kein harter Stopp: der Node wird erst cordoned und gedrained, jeder Dienst bekommt Zeit zum sauberen Beenden, danach stoppt k3s und erst dann folgt der Poweroff. Das dauert dadurch etwas länger als ein sofortiger Shutdown. Ein Wiedereinschalten ist nur vor Ort möglich, es gibt keinen Wake-on-LAN-Weg für den Homeserver. ControlPlane-1 allein reicht nicht: mit nur zwei Control-Planes ist die Kubernetes-API ohne ControlPlane-0 nicht schreibbar, bereits laufende Dienste auf ControlPlane-1 laufen aber weiter.")
-                                .font(.system(size: 14))
-                                .foregroundStyle(Theme.textMuted)
-                        }
+                        ShutdownWarningHeader()
 
-                        SectionCard(title: "Bestätigungscode") {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Derselbe Code wie für den ArgoCD-Admin-Login.")
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(Theme.textMuted)
-                                SecureField("Code", text: $code)
-                                    .textInputAutocapitalization(.never)
-                                    .disableAutocorrection(true)
-                                    .padding(10)
-                                    .background(Theme.glassBackgroundStrong)
-                                    .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
-                                    .foregroundStyle(Theme.textPrimary)
-
-                                if let error {
-                                    Text(error)
-                                        .font(.system(size: 12))
-                                        .foregroundStyle(Theme.statusBad)
-                                }
-                            }
-                        }
+                        confirmationCodeCard
 
                         Button {
                             onConfirm(code)
@@ -418,6 +387,44 @@ private struct HomeserverShutdownSheet: View {
                     }
                 }
             }
+        }
+    }
+
+    private var confirmationCodeCard: some View {
+        SectionCard(title: "Bestätigungscode") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Derselbe Code wie für den ArgoCD-Admin-Login.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.textMuted)
+                SecureField("Code", text: $code)
+                    .textInputAutocapitalization(.never)
+                    .disableAutocorrection(true)
+                    .padding(10)
+                    .glassTile()
+                    .foregroundStyle(Theme.textPrimary)
+
+                if let error {
+                    Text(error)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.statusBad)
+                }
+            }
+        }
+    }
+}
+
+private struct ShutdownWarningHeader: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(Theme.statusBad)
+            Text("Achtung")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(Theme.textPrimary)
+            Text("Das schaltet den gesamten Homeserver aus — damit auch Kubernetes, ArgoCD, diese API und alle darauf laufenden Dienste. Kein harter Stopp: der Node wird erst cordoned und gedrained, jeder Dienst bekommt Zeit zum sauberen Beenden, danach stoppt k3s und erst dann folgt der Poweroff. Das dauert dadurch etwas länger als ein sofortiger Shutdown. Ein Wiedereinschalten ist nur vor Ort möglich, es gibt keinen Wake-on-LAN-Weg für den Homeserver. ControlPlane-1 allein reicht nicht: mit nur zwei Control-Planes ist die Kubernetes-API ohne ControlPlane-0 nicht schreibbar, bereits laufende Dienste auf ControlPlane-1 laufen aber weiter.")
+                .font(.system(size: 14))
+                .foregroundStyle(Theme.textMuted)
         }
     }
 }

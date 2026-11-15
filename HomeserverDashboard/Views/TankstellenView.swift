@@ -7,7 +7,7 @@ struct TankstellenView: View {
     @State private var nearbyError: String?
     @State private var isLoading = false
 
-    private let client = TankerkoenigAPIClient()
+    private let client = TankerkoenigAPIClient.shared
     @ObservedObject private var locationManager = LocationManager.shared
     @State private var showingSettings = false
 
@@ -16,37 +16,8 @@ struct TankstellenView: View {
             ScreenBackground {
                 ScrollView {
                     VStack(spacing: 16) {
-                        SectionCard(title: "Tankstellen", systemImage: "fuelpump.fill") {
-                            VStack(spacing: 10) {
-                                ForEach(Constants.Tankerkoenig.fixedStations) { station in
-                                    FixedStationRow(
-                                        station: station,
-                                        prices: fixedPrices[station.id],
-                                        isLoading: isLoading
-                                    )
-                                }
-                            }
-
-                            if let fixedError {
-                                Text(fixedError)
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(Theme.statusBad)
-                            }
-                        }
-
-                        SectionCard(title: "Nächste (ohne Shell/Aral)", systemImage: "location.fill") {
-                            if let nearestStation {
-                                NearbyStationRow(station: nearestStation)
-                            } else if isLoading {
-                                ProgressView()
-                                    .tint(Theme.textPrimary)
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Text(nearbyError ?? "Keine Station in der Nähe gefunden.")
-                                    .font(.system(size: 13))
-                                    .foregroundStyle(Theme.textMuted)
-                            }
-                        }
+                        fixedStationsCard
+                        nearestStationCard
                     }
                     .padding(16)
                 }
@@ -65,6 +36,42 @@ struct TankstellenView: View {
             .task { await load() }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
+            }
+        }
+    }
+
+    private var fixedStationsCard: some View {
+        SectionCard(title: "Tankstellen", systemImage: "fuelpump.fill") {
+            VStack(spacing: 10) {
+                ForEach(Constants.Tankerkoenig.fixedStations) { station in
+                    FixedStationRow(
+                        station: station,
+                        prices: fixedPrices[station.id],
+                        isLoading: isLoading
+                    )
+                }
+            }
+
+            if let fixedError {
+                Text(fixedError)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.statusBad)
+            }
+        }
+    }
+
+    private var nearestStationCard: some View {
+        SectionCard(title: "Nächste (ohne Shell/Aral)", systemImage: "location.fill") {
+            if let nearestStation {
+                NearbyStationRow(station: nearestStation)
+            } else if isLoading {
+                ProgressView()
+                    .tint(Theme.textPrimary)
+                    .frame(maxWidth: .infinity)
+            } else {
+                Text(nearbyError ?? "Keine Station in der Nähe gefunden.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Theme.textMuted)
             }
         }
     }
@@ -101,6 +108,7 @@ struct TankstellenView: View {
             if nearestStation == nil {
                 nearbyError = "Keine passende Station im Umkreis von \(Constants.Tankerkoenig.nearbySearchRadiusKm) km gefunden."
             }
+        } catch is CancellationError {
         } catch {
             nearbyError = error.localizedDescription
         }
@@ -130,15 +138,12 @@ private struct FixedStationRow: View {
             } else if isLoading {
                 ProgressView().tint(Theme.textMuted)
             } else {
-                Text("Keine Daten")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Theme.textMuted)
+                NoDataText()
             }
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.glassBackgroundStrong)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+        .glassTile()
     }
 }
 
@@ -168,8 +173,7 @@ private struct NearbyStationRow: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.glassBackgroundStrong)
-        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusSmall, style: .continuous))
+        .glassTile()
     }
 }
 

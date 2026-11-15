@@ -9,7 +9,9 @@ enum WeatherError: LocalizedError {
 }
 
 final class WeatherAPIClient {
-    private let session = URLSession(configuration: .default)
+    static let shared = WeatherAPIClient()
+
+    private let session = HomeserverHTTP.publicSession
     private let decoder = JSONDecoder()
 
     func getForecast() async throws -> WeatherForecast {
@@ -19,7 +21,7 @@ final class WeatherAPIClient {
             URLQueryItem(name: "longitude", value: Constants.Weather.longitude),
             URLQueryItem(name: "current", value: "temperature_2m"),
             URLQueryItem(name: "daily", value: "temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max,windspeed_10m_max,sunrise,sunset"),
-            URLQueryItem(name: "timezone", value: "Europe/Berlin"),
+            URLQueryItem(name: "timezone", value: Constants.timeZoneIdentifier),
             URLQueryItem(name: "forecast_days", value: "2"),
         ]
 
